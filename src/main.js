@@ -15,7 +15,9 @@ const icon = (name, size = 20) => {
     wifi: '<path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/>',
     info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/>',
     menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
-    close: '<path d="m6 6 12 12M18 6 6 18"/>'
+    close: '<path d="m6 6 12 12M18 6 6 18"/>',
+    moon: '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>'
   };
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name]}</svg>`;
 };
@@ -29,6 +31,15 @@ const beds = [
 
 let state = { temp: 24.8, humidity: 63, rain: 4.2, updated: new Date(), auto: false, bedOffline: false, selectedBed: 1, period: 24, irrigation: [] };
 let autoTimer;
+const themePreference = window.matchMedia('(prefers-color-scheme: dark)');
+let theme = localStorage.getItem('huerta-theme') || (themePreference.matches ? 'dark' : 'light');
+
+function applyTheme() {
+  document.documentElement.dataset.theme = theme;
+  document.documentElement.style.colorScheme = theme;
+  document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#101915' : '#153f32';
+}
+applyTheme();
 
 const pages = {
   resumen: { label: 'Resumen', icon: 'grid' }, historial: { label: 'Historial', icon: 'chart' }, riegos: { label: 'Riegos', icon: 'drop' }, dispositivos: { label: 'Dispositivos', icon: 'cpu' }
@@ -50,7 +61,7 @@ function layout() {
       <header>
         <button class="icon-btn menu-btn" id="menu" aria-label="Abrir menú">${icon('menu')}</button>
         <div class="title"><span>Monitoreo de huerta orgánica</span><small>Panel de control experimental</small></div>
-        <div class="header-actions"><span class="demo-badge"><i></i> DEMO · DATOS SIMULADOS</span><button class="btn secondary" id="refresh">${icon('refresh',17)} <span>Actualizar datos</span></button></div>
+        <div class="header-actions"><span class="demo-badge"><i></i> DEMO · DATOS SIMULADOS</span><button class="btn secondary" id="refresh">${icon('refresh',17)} <span>Actualizar datos</span></button><button class="theme-toggle" id="theme-toggle" aria-label="${theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}" title="${theme === 'dark' ? 'Activar modo claro' : 'Activar modo oscuro'}">${icon(theme === 'dark' ? 'sun' : 'moon', 18)}</button></div>
       </header>
       <main><div class="page-head"><div><span class="eyebrow">TABLERO / ${pages[page].label.toUpperCase()}</span><h1>${pages[page].label}</h1><p>${pageSubtitle(page)}</p></div><div class="last-update">${icon('clock',16)} Actualizado <strong id="updated">${formatTime(state.updated)}</strong></div></div><div id="content">${renderPage(page)}</div></main>
       <footer><span>Prototipo académico · Los valores y eventos son simulados.</span><span>Sin conexión a dispositivos reales</span></footer>
@@ -114,6 +125,7 @@ function renderDevices(){
 
 function bindGlobal(){
   document.querySelector('#refresh').onclick=()=>updateData(true);
+  document.querySelector('#theme-toggle').onclick=()=>{theme=theme==='dark'?'light':'dark';localStorage.setItem('huerta-theme',theme);applyTheme();layout()};
   document.querySelector('#menu').onclick=()=>document.querySelector('#sidebar').classList.toggle('open');
   document.querySelectorAll('nav a').forEach(a=>a.onclick=()=>document.querySelector('#sidebar').classList.remove('open'));
 }
@@ -133,10 +145,12 @@ function showToast(message,type){const t=document.querySelector('#toast');if(!t)
 
 function drawChart(){
   const canvas=document.querySelector('#chart'); if(!canvas)return; const rect=canvas.parentElement.getBoundingClientRect(); const dpr=devicePixelRatio||1;canvas.width=rect.width*dpr;canvas.height=340*dpr;canvas.style.height='340px';const c=canvas.getContext('2d');c.scale(dpr,dpr);const w=rect.width,h=340,p={l:48,r:40,t:25,b:42};const n=state.period===24?13:15;const min=beds[state.selectedBed].min;const moisture=Array.from({length:n},(_,i)=>Math.max(20,Math.min(70,beds[state.selectedBed].value+Math.sin(i*.8)*5+(i-n+1)*.35)));const rain=Array.from({length:n},(_,i)=>(i===5||i===6?1.2+i%2*1.8:i===10?.8:0));
-  c.font='12px Inter, sans-serif';c.strokeStyle='#e1e8e4';c.fillStyle='#788780';c.lineWidth=1;for(let v=20;v<=80;v+=15){const y=p.t+(80-v)/60*(h-p.t-p.b);c.beginPath();c.moveTo(p.l,y);c.lineTo(w-p.r,y);c.stroke();c.fillText(v+'%',8,y+4)}
+  const styles=getComputedStyle(document.documentElement);const chartGrid=styles.getPropertyValue('--chart-grid').trim();const chartText=styles.getPropertyValue('--chart-text').trim();
+  c.fillStyle=styles.getPropertyValue('--surface').trim();c.fillRect(0,0,w,h);c.font='12px Inter, sans-serif';c.strokeStyle=chartGrid;c.fillStyle=chartText;c.lineWidth=1;for(let v=20;v<=80;v+=15){const y=p.t+(80-v)/60*(h-p.t-p.b);c.beginPath();c.moveTo(p.l,y);c.lineTo(w-p.r,y);c.stroke();c.fillText(v+'%',8,y+4)}
   const x=i=>p.l+i/(n-1)*(w-p.l-p.r), y=v=>p.t+(80-v)/60*(h-p.t-p.b);const threshold=y(min);c.setLineDash([6,5]);c.strokeStyle='#d39b2b';c.beginPath();c.moveTo(p.l,threshold);c.lineTo(w-p.r,threshold);c.stroke();c.setLineDash([]);
   const grad=c.createLinearGradient(0,p.t,0,h-p.b);grad.addColorStop(0,'rgba(42,122,91,.23)');grad.addColorStop(1,'rgba(42,122,91,0)');c.beginPath();moisture.forEach((v,i)=>i?c.lineTo(x(i),y(v)):c.moveTo(x(i),y(v)));c.lineTo(x(n-1),h-p.b);c.lineTo(x(0),h-p.b);c.closePath();c.fillStyle=grad;c.fill();c.beginPath();moisture.forEach((v,i)=>i?c.lineTo(x(i),y(v)):c.moveTo(x(i),y(v)));c.strokeStyle='#237454';c.lineWidth=2.5;c.stroke();
   const maxRain=4;c.beginPath();rain.forEach((v,i)=>{const yy=h-p.b-v/maxRain*100;i?c.lineTo(x(i),yy):c.moveTo(x(i),yy)});c.strokeStyle='#43a2c2';c.lineWidth=2;c.stroke();
-  c.fillStyle='#788780';const labels=state.period===24?['00 h','04 h','08 h','12 h','16 h','20 h','Ahora']:['Hace 7 d','Hace 6 d','Hace 5 d','Hace 4 d','Hace 3 d','Ayer','Hoy'];labels.forEach((l,i)=>c.fillText(l,p.l+i/(labels.length-1)*(w-p.l-p.r)-12,h-15));
+  c.fillStyle=chartText;const labels=state.period===24?['00 h','04 h','08 h','12 h','16 h','20 h','Ahora']:['Hace 7 d','Hace 6 d','Hace 5 d','Hace 4 d','Hace 3 d','Ayer','Hoy'];labels.forEach((l,i)=>c.fillText(l,p.l+i/(labels.length-1)*(w-p.l-p.r)-12,h-15));
 }
+themePreference.addEventListener('change',event=>{if(!localStorage.getItem('huerta-theme')){theme=event.matches?'dark':'light';applyTheme();layout()}});
 window.addEventListener('hashchange',layout);window.addEventListener('resize',()=>activePage()==='historial'&&drawChart());layout();
