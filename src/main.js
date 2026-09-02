@@ -23,10 +23,10 @@ const icon = (name, size = 20) => {
 };
 
 const beds = [
-  { name: 'Aromáticas', value: 52, min: 40, max: 65, color: '#2b7a5c' },
-  { name: 'Hojas', value: 28, min: 35, max: 60, color: '#5ca680' },
-  { name: 'Raíces', value: 44, min: 38, max: 58, color: '#d6a53c' },
-  { name: 'Legumbres', value: 49, min: 42, max: 62, color: '#3a8ea5' },
+  { name: 'Maíz dulce', value: 52, min: 40, max: 65, color: '#2b7a5c' },
+  { name: 'Zapallos', value: 28, min: 35, max: 60, color: '#5ca680' },
+  { name: 'Arveja', value: 44, min: 38, max: 58, color: '#d6a53c' },
+  { name: 'Cítricos', value: 49, min: 42, max: 62, color: '#3a8ea5' },
 ];
 
 let state = { temp: 24.8, humidity: 63, rain: 4.2, updated: new Date(), auto: false, bedOffline: false, selectedBed: 1, period: 24, irrigation: [] };
@@ -91,7 +91,7 @@ function renderSummary() {
   <section class="section"><div class="section-title"><div><h2>Humedad de suelo</h2><p>Lectura actual por cantero y rango agronómico definido</p></div><div class="legend"><i></i> En rango <i class="warn"></i> Bajo mínimo</div></div>
   <div class="beds">${beds.map((b,i)=>bedCard(b,i)).join('')}</div></section>
   <div class="two-col"><section class="panel"><div class="section-title"><div><h2>Actividad reciente</h2><p>Eventos de la jornada</p></div><button class="text-btn">Ver historial</button></div>
-    <div class="timeline">${eventRow('drop','Lluvia detectada','4,2 mm acumulados por el pluviómetro','08:42','blue')}${eventRow('bell','Humedad baja · Hojas','Cantero 2 descendió del umbral de 35 %','08:17','yellow')}${eventRow('cpu','Sincronización completada','Todos los nodos reportaron telemetría','07:55','green')}${eventRow('drop','Riego manual registrado','Cantero 1 · Aromáticas · 12 minutos','Ayer','cyan')}</div>
+    <div class="timeline">${eventRow('drop','Lluvia detectada','4,2 mm acumulados por el pluviómetro','08:42','blue')}${eventRow('bell','Humedad baja · Zapallos','Cantero 2 descendió del umbral de 35 %','08:17','yellow')}${eventRow('cpu','Sincronización completada','Todos los nodos reportaron telemetría','07:55','green')}${eventRow('drop','Riego manual registrado','Cantero 1 · Maíz dulce · 12 minutos','Ayer','cyan')}</div>
   </section><section class="panel system"><div class="section-title"><div><h2>Estado del sistema</h2><p>Servicios conceptuales de la demo</p></div><span class="status-pill online">Operativo</span></div>
   ${statusRow('Red de sensores','6 nodos configurados','6 / 6')}${statusRow('Mensajería MQTT/TLS','Flujo simulado','Normal')}${statusRow('Almacenamiento','Datos locales temporales','Activo')}
   <label class="auto"><div><strong>Simulación automática</strong><small>Actualizar cada 10 segundos</small></div><input type="checkbox" id="auto" ${state.auto?'checked':''}><span></span></label></section></div>`;
@@ -110,14 +110,14 @@ function renderIrrigation() {
   return `<div class="irrigation-grid"><section class="panel form-panel"><div class="section-title"><div><h2>Registrar riego manual</h2><p>Documentá una intervención realizada en la huerta</p></div></div><form id="irrigation-form"><label>Sector<select name="sector" required>${beds.map((b,i)=>`<option>Cantero ${i+1} · ${b.name}</option>`).join('')}</select></label><div class="form-row"><label>Fecha y hora<input name="date" type="datetime-local" required value="${localInputDate()}"></label><label>Duración (min)<input name="duration" type="number" min="1" value="10" required></label></div><label>Volumen estimado (litros)<input name="volume" type="number" min="0.1" step="0.1" value="8" required></label><label>Observaciones<textarea name="notes" rows="3" placeholder="Ej.: Riego manual con regadera"></textarea></label><div class="notice">${icon('info',18)}<span><strong>Registro informativo</strong> Esta acción no activa bombas ni electroválvulas.</span></div><button class="btn primary" type="submit">${icon('drop',17)} Guardar registro</button></form></section><section class="panel table-panel"><div class="section-title"><div><h2>Últimos riegos</h2><p>Historial de intervenciones registradas</p></div></div><div class="table-scroll"><table><thead><tr><th>Sector</th><th>Fecha</th><th>Duración</th><th>Volumen</th></tr></thead><tbody id="irrigation-list">${irrigationRows()}</tbody></table></div></section></div>`;
 }
 function localInputDate(){const d=new Date(Date.now()-new Date().getTimezoneOffset()*60000);return d.toISOString().slice(0,16)}
-function irrigationRows(){const defaults=[{sector:'Cantero 1 · Aromáticas',date:'01/09 · 18:20',duration:12,volume:'9,5'},{sector:'Cantero 3 · Raíces',date:'31/08 · 17:45',duration:15,volume:'12,0'},{sector:'Cantero 4 · Legumbres',date:'30/08 · 18:10',duration:10,volume:'8,0'}];return [...state.irrigation,...defaults].map(r=>`<tr><td><strong>${r.sector}</strong></td><td>${r.date}</td><td>${r.duration} min</td><td>${r.volume} L</td></tr>`).join('')}
+function irrigationRows(){const defaults=[{sector:'Cantero 1 · Maíz dulce',date:'01/09 · 18:20',duration:12,volume:'9,5'},{sector:'Cantero 3 · Arveja',date:'31/08 · 17:45',duration:15,volume:'12,0'},{sector:'Cantero 4 · Cítricos',date:'30/08 · 18:10',duration:10,volume:'8,0'}];return [...state.irrigation,...defaults].map(r=>`<tr><td><strong>${r.sector}</strong></td><td>${r.date}</td><td>${r.duration} min</td><td>${r.volume} L</td></tr>`).join('')}
 
 function renderDevices(){
   const devices=[
-    ['ESP32-C01','Cantero 1 · Aromáticas','Humedad de suelo',true,'hace 1 min','Batería · 84 %','-48 dBm'],
-    ['ESP32-C02','Cantero 2 · Hojas','Humedad de suelo',!state.bedOffline,state.bedOffline?'sin contacto':'hace 2 min','Batería · 71 %',state.bedOffline?'—':'-56 dBm'],
-    ['ESP32-C03','Cantero 3 · Raíces','Humedad de suelo',true,'hace 1 min','Batería · 79 %','-51 dBm'],
-    ['ESP32-C04','Cantero 4 · Legumbres','Humedad de suelo',true,'hace 3 min','Batería · 88 %','-45 dBm'],
+    ['ESP32-C01','Cantero 1 · Maíz dulce','Humedad de suelo',true,'hace 1 min','Batería · 84 %','-48 dBm'],
+    ['ESP32-C02','Cantero 2 · Zapallos','Humedad de suelo',!state.bedOffline,state.bedOffline?'sin contacto':'hace 2 min','Batería · 71 %',state.bedOffline?'—':'-56 dBm'],
+    ['ESP32-C03','Cantero 3 · Arveja','Humedad de suelo',true,'hace 1 min','Batería · 79 %','-51 dBm'],
+    ['ESP32-C04','Cantero 4 · Cítricos','Humedad de suelo',true,'hace 3 min','Batería · 88 %','-45 dBm'],
     ['ESP32-AMB','Estación ambiental','Temperatura y H. relativa',true,'hace 1 min','Fuente 5 V','-42 dBm'],
     ['ESP32-PLU','Pluviómetro','Precipitación',true,'hace 2 min','Batería · 93 %','-61 dBm']];
   return `<section class="panel devices-panel"><div class="section-title"><div><h2>Nodos y telemetría</h2><p>Topología simulada · Wi-Fi 2,4 GHz · MQTT/TLS conceptual</p></div><button class="btn ${state.bedOffline?'primary':'danger-outline'}" id="toggle-node">${icon(state.bedOffline?'refresh':'wifi',17)} ${state.bedOffline?'Reconectar nodo C02':'Interrumpir nodo C02'}</button></div><div class="table-scroll"><table class="devices"><thead><tr><th>Dispositivo / ubicación</th><th>Variable medida</th><th>Estado</th><th>Último contacto</th><th>Alimentación</th><th>Señal Wi-Fi</th></tr></thead><tbody>${devices.map(d=>`<tr class="${!d[3]?'offline':''}"><td><span class="device-icon">${icon('cpu',18)}</span><strong>${d[0]}</strong><small>${d[1]}</small></td><td>${d[2]}</td><td><span class="status-pill ${d[3]?'online':'danger'}">${d[3]?'En línea':'Sin conexión'}</span></td><td>${d[4]}</td><td>${d[5]}</td><td>${icon('wifi',16)} ${d[6]}</td></tr>`).join('')}</tbody></table></div><div class="devices-note">${icon('info',17)} Esta vista representa la arquitectura prevista. No existe conexión con equipos, broker ni sensores reales.</div></section>`;

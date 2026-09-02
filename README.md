@@ -9,7 +9,7 @@ Tablero web estático para el proyecto académico **“Monitoreo de una huerta o
 - Resumen de variables ambientales, humedad por cantero, alertas y actividad.
 - Historial gráfico filtrable por cantero y período, con umbrales específicos.
 - Registro local de riegos manuales (no acciona equipamiento).
-- Estado simulado de nodos ESP32 e interrupción/reconexión del Cantero 2.
+- Estado simulado de nodos ESP32 e interrupción/reconexión del Cantero 2 · Zapallos.
 - Actualización manual o automática de datos simulados.
 
 ## Desarrollo local
